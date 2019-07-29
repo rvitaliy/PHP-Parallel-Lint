@@ -35,18 +35,19 @@ class Process
      * @param string $executable
      * @param string[] $arguments
      * @param string $stdInInput
+     *
      * @throws RunTimeException
      */
-    public function __construct($executable, array $arguments = array(), $stdInInput = null)
+    public function __construct($executable, array $arguments = [], $stdInInput = null)
     {
-        $descriptors = array(
-            self::STDIN  => array('pipe', self::READ),
-            self::STDOUT => array('pipe', self::WRITE),
-            self::STDERR => array('pipe', self::WRITE),
-        );
+        $descriptors = [
+            self::STDIN => ['pipe', self::READ],
+            self::STDOUT => ['pipe', self::WRITE],
+            self::STDERR => ['pipe', self::WRITE],
+        ];
 
-        $cmdLine = $executable . ' ' . implode(' ', array_map('escapeshellarg', $arguments));
-        $this->process = proc_open($cmdLine, $descriptors, $pipes, null, null, array('bypass_shell' => true));
+        $cmdLine = $executable.' '.implode(' ', array_map('escapeshellarg', $arguments));
+        $this->process = proc_open($cmdLine, $descriptors, $pipes, null, null, ['bypass_shell' => true]);
 
         if ($this->process === false || $this->process === null) {
             throw new RunTimeException("Cannot create new process $cmdLine");
@@ -74,8 +75,10 @@ class Process
 
         if ($status['running']) {
             return false;
-        } else if ($this->statusCode === null) {
-            $this->statusCode = (int) $status['exitcode'];
+        } else {
+            if ($this->statusCode === null) {
+                $this->statusCode = (int) $status['exitcode'];
+            }
         }
 
         // Process outputs
